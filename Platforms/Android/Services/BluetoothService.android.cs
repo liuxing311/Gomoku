@@ -274,13 +274,19 @@ public class BluetoothService : IBluetoothService
         catch { }
         RaiseStatus("已发现房间，正在连接…");
 
-        var gattCallback = new ClientGattCallback(this);
+        // 立即连接常与对方广播窗口冲突导致 status=133，先停扫并延时再连
+        var dev = device;
+        Task.Delay(1200).ContinueWith(_ =>
+        {
+            if (Role != BluetoothRole.Guest || _guestReady) return;
+            var gattCallback = new ClientGattCallback(this);
 #pragma warning disable CA1416
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
-            _gatt = device.ConnectGatt(_context, false, gattCallback, BluetoothTransports.Le);
-        else
-            _gatt = device.ConnectGatt(_context, false, gattCallback);
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+                _gatt = dev.ConnectGatt(_context, false, gattCallback, BluetoothTransports.Le);
+            else
+                _gatt = dev.ConnectGatt(_context, false, gattCallback);
 #pragma warning restore CA1416
+        });
     }
 
     // ---------------------------------------------------------------- 收发
