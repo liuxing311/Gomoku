@@ -12,10 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name: Setup .NET 10 (10.0.202)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '10.0.202'
 
       - name: Select Xcode and list versions
         run: |
@@ -27,12 +27,19 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Install workloads
+      - name: Install workloads (set 10.0.202 => iOS 26.2.10233, Xcode 26.3)
         run: |
-          dotnet workload install maui-android
-          dotnet workload install ios --version 26.2.10233
+          set +e
+          dotnet workload install maui-android ios --version 10.0.202 > workload.log 2>&1
+          EXIT=$?
+          cat workload.log
           echo "===== 已安装 workload ====="
           dotnet workload list
+          if [ $EXIT -ne 0 ]; then
+            ERR=$(tail -15 workload.log | tr '\n' '|' | head -c 30000)
+            echo "::error::workload安装失败: $ERR"
+            exit 1
+          fi
 
       - name: Build and package unsigned IPA
         run: |
