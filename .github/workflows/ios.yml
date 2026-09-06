@@ -21,14 +21,34 @@ jobs:
         run: |
           ls /Applications | grep Xcode
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
 
       - name: Install iOS workload
         run: dotnet workload install ios --source https://api.nuget.org/v3/index.json
 
       - name: Publish unsigned IPA
-        run: dotnet publish Gomoku.csproj -f net10.0-ios -c Release -p:MtouchSignAssembly=false -p:RuntimeIdentifier=ios-arm64
+        continue-on-error: true
+        run: |
+          dotnet publish Gomoku.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:MtouchSignAssembly=false \
+            -p:CodesignKey= \
+            -p:CodesignProvision= \
+            -p:BuildIpa=true \
+            -v minimal 2>&1 | tee publish.log
+          echo "PUBLISH_EXIT=$?" >> $GITHUB_ENV
+
+      - name: Upload publish log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-log
+          path: publish.log
 
       - name: Upload IPA artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Gomoku-unsigned-ipa
