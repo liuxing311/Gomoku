@@ -59,8 +59,7 @@ public class BluetoothService : IBluetoothService
             var param = new GattLocalCharacteristicParameters
             {
                 // Notify（主机→从机）+ Write（从机→主机），与 Android/iOS 端一致
-                CharacteristicProperties = GattCharacteristicProperties.Notify | GattCharacteristicProperties.Write,
-                Permissions = GattCharacteristicPermissions.Read | GattCharacteristicPermissions.Write
+                CharacteristicProperties = GattCharacteristicProperties.Notify | GattCharacteristicProperties.Write
             };
             var chResult = await _provider.Service.CreateCharacteristicAsync(CharUuid, param);
             _hostChar = chResult.Characteristic;
@@ -89,8 +88,8 @@ public class BluetoothService : IBluetoothService
             case GattServiceProviderAdvertisementStatus.Aborted:
                 RaiseStatus("广播启动失败：本机蓝牙可能不支持外设模式，请改用加入房间");
                 break;
-            case GattServiceProviderAdvertisementStatus.StoppedDueToSystemPolicy:
-                RaiseStatus("广播被系统暂停，请重试");
+            case GattServiceProviderAdvertisementStatus.Stopped:
+                RaiseStatus("广播已停止，请重试");
                 break;
         }
     }
