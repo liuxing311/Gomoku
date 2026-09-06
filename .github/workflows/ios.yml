@@ -26,10 +26,9 @@ jobs:
       - name: Install workloads
         run: dotnet workload restore Gomoku.csproj
 
-      - name: Publish unsigned IPA
-        continue-on-error: true
+      - name: Build and package unsigned IPA
         run: |
-          set +e
+          set -e
           dotnet publish Gomoku.csproj \
             -f net10.0-ios \
             -c Release \
@@ -37,25 +36,33 @@ jobs:
             -p:MtouchSignAssembly=false \
             -p:CodesignKey= \
             -p:CodesignProvision= \
-            -p:BuildIpa=true \
-            -v minimal > publish.log 2>&1
-          echo "PUBLISH_EXIT=$?"
-          echo "===== PUBLISH LOG ====="
-          cat publish.log
-          echo "===== PUBLISH DIR ====="
-          find . -name "*.ipa" 2>/dev/null || true
+            -p:BuildIpa=false \
+            -v minimal
+
+          echo "===== Publish 输出目录 ====="
+          find bin/Release/net10.0-ios/ios-arm64/publish -maxdepth 2 -type d 2>/dev/null || true
           ls -la bin/Release/net10.0-ios/ios-arm64/publish/ 2>/dev/null || true
 
-      - name: Upload publish log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: publish-log
-          path: publish.log
+          APPDIR=$(find bin/Release/net10.0-ios/ios-arm64/publish -name "*.app" -type d | head -1)
+          echo "找到 .app: $APPDIR"
+
+          if [ -z "$APPDIR" ]; then
+            echo "::error::未找到 .app 包"
+            find . -name "*.app" -type d 2>/dev/null || true
+            exit 1
+          fi
+
+          # 手动打包 IPA（Payload/*.app）
+          rm -rf Payload Gomoku.ipa
+          mkdir -p Payload
+          cp -R "$APPDIR" Payload/
+          zip -qr Gomoku.ipa Payload
+          ls -la Gomoku.ipa
+          echo "===== IPA 已生成 ====="
 
       - name: Upload IPA artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Gomoku-unsigned-ipa
-          path: '**/publish/*.ipa'
+          path: Gomoku.ipa
