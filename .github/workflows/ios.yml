@@ -45,7 +45,10 @@ jobs:
           find bin/Release/net10.0-ios/ios-arm64/ -maxdepth 3 2>/dev/null | head -50 || true
 
           if [ $EXIT -ne 0 ]; then
-            echo "::error::dotnet publish 失败，退出码 $EXIT"
+            echo "===== publish.log 最后30行 ====="
+            tail -30 publish.log
+            ERR=$(tail -10 publish.log | tr '\n' '|' | head -c 60000)
+            echo "::error::publish失败: $ERR"
             exit 1
           fi
 
