@@ -116,3 +116,15 @@ jobs:
         with:
           name: Gomoku-unsigned-ipa
           path: Gomoku.ipa
+
+      - name: Create GitHub Release with IPA
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.0.${{ github.run_number }}"
+          gh release create "$TAG" Gomoku.ipa \
+            --title "五子棋 iOS $TAG" \
+            --notes "未签名 IPA，用 Sideloadly 侧载安装。Release 资产可免登录下载。" \
+            --target "$GITHUB_SHA"
+          echo "===== Release 已创建 ====="
