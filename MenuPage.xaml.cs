@@ -12,8 +12,8 @@ public partial class MenuPage : ContentPage
         InitializeComponent();
         _bluetooth = bluetooth;
 
-#if !ANDROID
-        // 蓝牙对战目前仅在 Android 上实现
+#if !ANDROID && !IOS
+        // 其余平台无蓝牙实现，隐藏蓝牙对战区域
         BtSection.IsVisible = false;
 #endif
     }
