@@ -180,7 +180,7 @@ public class BluetoothService : IBluetoothService
             }
         }
 
-        public override void ServiceAdded(CBPeripheralManager peripheral, CBMutableService service, NSError? error)
+        public override void ServiceAdded(CBPeripheralManager peripheral, CBService service, NSError? error)
         {
             if (error is not null)
             {
@@ -202,13 +202,13 @@ public class BluetoothService : IBluetoothService
         }
 
         // 从机写入 CCCD 开启通知 → 通道双向就绪，发送握手
-        public override void DidSubscribeToCharacteristic(CBPeripheralManager peripheral, CBCentral central, CBCharacteristic characteristic)
+        public override void CharacteristicSubscribed(CBPeripheralManager peripheral, CBCentral central, CBCharacteristic characteristic)
         {
             _svc.OnConnected();
             _ = _svc.SendAsync("S");
         }
 
-        public override void DidUnsubscribeFromCharacteristic(CBPeripheralManager peripheral, CBCentral central, CBCharacteristic characteristic)
+        public override void CharacteristicUnsubscribed(CBPeripheralManager peripheral, CBCentral central, CBCharacteristic characteristic)
             => _svc.OnDisconnected();
 
         // 从机写特征（落子/重开消息）
