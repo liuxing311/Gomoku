@@ -76,15 +76,14 @@ public class BluetoothService : IBluetoothService
             _hostChar.SubscribedClientsChanged += OnSubscribedClientsChanged;
             _lastSubscriberCount = 0;
 
-            // 必须显式使用可连接广播并携带服务 UUID，
-            // 手机端按服务 UUID 过滤扫描，无参 StartAdvertising() 不会广播 UUID 导致永远扫不到
-            var adv = new BluetoothLEAdvertisement
+            // 可连接+可发现广播：手机端按服务 UUID 过滤扫描才能发现；
+            // 无参 StartAdvertising() 不含服务 UUID，手机永远扫不到
+            var advParams = new GattServiceProviderAdvertisingParameters
             {
                 IsConnectable = true,
                 IsDiscoverable = true
             };
-            adv.ServiceUuids.Add(ServiceUuid);
-            _provider.StartAdvertising(adv);
+            _provider.StartAdvertising(advParams);
             return true;
         }
         catch (Exception ex)
