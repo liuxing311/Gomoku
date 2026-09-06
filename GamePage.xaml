@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Gomoku.GamePage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F5EDE0">
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="16"
+          RowSpacing="10">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="2">
+            <Label x:Name="TitleLabel"
+                   Text="五子棋"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="#3E2723"
+                   HorizontalOptions="Center" />
+            <Label x:Name="StatusLabel"
+                   Text="● 黑棋回合"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="#5D4037"
+                   HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <GraphicsView x:Name="BoardView"
+                      Grid.Row="1"
+                      HorizontalOptions="Fill"
+                      VerticalOptions="Fill" />
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="14">
+            <Button Grid.Column="0"
+                    x:Name="ConfirmButton"
+                    Text="确认落子"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Clicked="OnConfirmClicked"
+                    IsEnabled="False"
+                    BackgroundColor="#2E7D32"
+                    TextColor="White"
+                    CornerRadius="26"
+                    Padding="0,12" />
+            <Button Grid.Column="1"
+                    Text="重新开始"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Clicked="OnResetClicked"
+                    BackgroundColor="#6D4C41"
+                    TextColor="White"
+                    CornerRadius="26"
+                    Padding="0,12" />
+        </Grid>
+    </Grid>
+
+</ContentPage>

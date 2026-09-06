@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Gomoku.MenuPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#F5EDE0">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="28" Spacing="18" VerticalOptions="Center">
+
+            <Label Text="五子棋"
+                   FontSize="44"
+                   FontAttributes="Bold"
+                   TextColor="#3E2723"
+                   HorizontalOptions="Center" />
+            <Label Text="Gomoku"
+                   FontSize="16"
+                   TextColor="#8D6E63"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,12" />
+
+            <!-- 单机模式 -->
+            <Button Text="双人同屏"
+                    Clicked="OnLocalClicked"
+                    HeightRequest="58"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    BackgroundColor="#6D4C41"
+                    TextColor="White"
+                    CornerRadius="29" />
+
+            <Button Text="人机对战（我先手）"
+                    Clicked="OnAiPlayerFirstClicked"
+                    HeightRequest="58"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    BackgroundColor="#8D6E63"
+                    TextColor="White"
+                    CornerRadius="29" />
+
+            <Button Text="人机对战（AI 先手）"
+                    Clicked="OnAiAiFirstClicked"
+                    HeightRequest="58"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    BackgroundColor="#8D6E63"
+                    TextColor="White"
+                    CornerRadius="29" />
+
+            <Label Text="—— 蓝牙对战 · 靠近自动连接 ——"
+                   FontSize="15"
+                   TextColor="#8D6E63"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,0" />
+
+            <!-- 蓝牙模式（仅 Android） -->
+            <VerticalStackLayout x:Name="BtSection" Spacing="18">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                <Button Grid.Column="0"
+                        Text="创建房间（执黑）"
+                        Clicked="OnHostClicked"
+                        HeightRequest="58"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        BackgroundColor="#3F51B5"
+                        TextColor="White"
+                        CornerRadius="29" />
+                <Button Grid.Column="1"
+                        Text="加入房间（执白）"
+                        Clicked="OnGuestClicked"
+                        HeightRequest="58"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        BackgroundColor="#00897B"
+                        TextColor="White"
+                        CornerRadius="29" />
+            </Grid>
+
+            <Label x:Name="BtStatusLabel"
+                   Text="两台手机各装本应用：一台点创建房间（执黑先行），一台点加入房间（执白），靠近即自动连接"
+                   FontSize="14"
+                   TextColor="#5D4037"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,4,0,0" />
+
+            <Button x:Name="CancelBtButton"
+                    Text="取消等待"
+                    Clicked="OnCancelBtClicked"
+                    IsVisible="False"
+                    HeightRequest="44"
+                    FontSize="16"
+                    BackgroundColor="#B0BEC5"
+                    TextColor="#263238"
+                    CornerRadius="22" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,33 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Select latest Xcode
+        run: |
+          ls /Applications | grep Xcode
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+
+      - name: Install iOS workload
+        run: dotnet workload install ios --source https://api.nuget.org/v3/index.json
+
+      - name: Publish unsigned IPA
+        run: dotnet publish Gomoku.csproj -f net10.0-ios -c Release -p:MtouchSignAssembly=false -p:RuntimeIdentifier=ios-arm64
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gomoku-unsigned-ipa
+          path: '**/publish/*.ipa'
