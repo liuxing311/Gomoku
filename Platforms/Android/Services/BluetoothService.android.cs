@@ -39,6 +39,9 @@ public class BluetoothService : IBluetoothService
     private BluetoothGatt? _gatt;
     private BluetoothGattCharacteristic? _guestChar;
     private bool _guestReady;
+    private bool _connecting;
+    private int _scanRetries;
+    private const int MaxScanRetries = 8;
 
     public bool IsConnected { get; private set; }
     public BluetoothRole Role { get; private set; } = BluetoothRole.None;
@@ -190,6 +193,8 @@ public class BluetoothService : IBluetoothService
         Stop();
         Role = BluetoothRole.Guest;
         _guestReady = false;
+        _connecting = false;
+        _scanRetries = 0;
 
         try
         {
@@ -200,6 +205,24 @@ public class BluetoothService : IBluetoothService
                 return false;
             }
 
+            if (StartScan())
+            {
+                RaiseStatus("正在搜索附近的房间，请将两台手机靠近…");
+                return true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            RaiseStatus($"扫描异常：{ex.Message}");
+            return false;
+        }
+    }
+
+    private bool StartScan()
+    {
+        try
+        {
             var filter = new ScanFilter.Builder()!
                 .SetServiceUuid(new ParcelUuid(ServiceUuid)!)!
                 .Build()!;
@@ -208,8 +231,7 @@ public class BluetoothService : IBluetoothService
                 .Build()!;
 
             _scanCallback = new GuestScanCallback(this);
-            _scanner.StartScan(new List<ScanFilter> { filter! }, settings, _scanCallback);
-            RaiseStatus("正在搜索附近的房间，请将两台手机靠近…");
+            _scanner!.StartScan(new List<ScanFilter> { filter! }, settings, _scanCallback);
             return true;
         }
         catch (Exception ex)
@@ -219,8 +241,32 @@ public class BluetoothService : IBluetoothService
         }
     }
 
+    /// <summary>连接失败后重新扫描重试（与 iOS/Windows 端同款策略）。</summary>
+    internal void RescheduleScan(string reason)
+    {
+        _connecting = false;
+        _scanRetries++;
+        if (Role != BluetoothRole.Guest) return;
+        if (_scanRetries <= MaxScanRetries)
+        {
+            RaiseStatus($"{reason}，正在重试…（{_scanRetries}/{MaxScanRetries}）");
+            Task.Delay(2000).ContinueWith(_ =>
+            {
+                if (Role != BluetoothRole.Guest || _guestReady || _connecting) return;
+                StartScan();
+            });
+        }
+        else
+        {
+            Role = BluetoothRole.None;
+            RaiseStatus("多次连接失败，请确认双方都开启蓝牙并靠近，然后重新加入房间");
+        }
+    }
+
     private void OnDeviceFound(BluetoothDevice device)
     {
+        if (_connecting || _gatt is not null) return;
+        _connecting = true;
         try
         {
             _scanner?.StopScan(_scanCallback);
@@ -346,6 +392,8 @@ public class BluetoothService : IBluetoothService
         _hostChar = null;
         _guestChar = null;
         _guestReady = false;
+        _connecting = false;
+        _scanRetries = 0;
 
         try { if (_advertiser is not null && _advCallback is not null) _advertiser.StopAdvertising(_advCallback); } catch { }
         _advCallback = null;
@@ -429,8 +477,20 @@ public class BluetoothService : IBluetoothService
             }
             else if (newState == ProfileState.Disconnected)
             {
+                bool wasReady = _svc._guestReady;
                 _svc._guestReady = false;
-                _svc.OnDisconnected();
+                try { gatt?.Close(); } catch { }
+                _svc._gatt = null;
+
+                if (!wasReady && _svc.Role == BluetoothRole.Guest)
+                {
+                    // 通道尚未建立就断开 → 视为连接失败，重试
+                    _svc.RescheduleScan($"连接未成功（status={(int)status}）");
+                }
+                else
+                {
+                    _svc.OnDisconnected();
+                }
             }
         }
 
@@ -439,7 +499,10 @@ public class BluetoothService : IBluetoothService
             var ch = gatt?.GetService(ServiceUuid)?.GetCharacteristic(CharUuid);
             if (gatt is null || ch is null)
             {
-                _svc.RaiseStatus("连接失败：未找到对战服务");
+                _svc.RaiseStatus($"未找到对战服务（{(status == GattStatus.Success ? "服务缺失" : $"status={(int)status}")}）");
+                try { gatt?.Close(); } catch { }
+                _svc._gatt = null;
+                _svc.RescheduleScan("未找到对战服务");
                 return;
             }
             _svc._guestChar = ch;
