@@ -29,6 +29,7 @@ jobs:
       - name: Publish unsigned IPA
         continue-on-error: true
         run: |
+          set +e
           dotnet publish Gomoku.csproj \
             -f net10.0-ios \
             -c Release \
@@ -37,8 +38,13 @@ jobs:
             -p:CodesignKey= \
             -p:CodesignProvision= \
             -p:BuildIpa=true \
-            -v minimal 2>&1 | tee publish.log
-          echo "PUBLISH_EXIT=$?" >> $GITHUB_ENV
+            -v minimal > publish.log 2>&1
+          echo "PUBLISH_EXIT=$?"
+          echo "===== PUBLISH LOG ====="
+          cat publish.log
+          echo "===== PUBLISH DIR ====="
+          find . -name "*.ipa" 2>/dev/null || true
+          ls -la bin/Release/net10.0-ios/ios-arm64/publish/ 2>/dev/null || true
 
       - name: Upload publish log
         if: always()
