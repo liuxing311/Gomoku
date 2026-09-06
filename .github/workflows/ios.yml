@@ -30,7 +30,7 @@ jobs:
       - name: Install workloads (set 10.0.202 => iOS 26.2.10233, Xcode 26.3)
         run: |
           set +e
-          dotnet workload install maui-android ios --version 10.0.202 > workload.log 2>&1
+          dotnet workload install maui-android ios maccatalyst --version 10.0.202 > workload.log 2>&1
           EXIT=$?
           cat workload.log
           echo "===== 已安装 workload ====="
