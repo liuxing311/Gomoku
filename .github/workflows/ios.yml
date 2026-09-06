@@ -23,8 +23,8 @@ jobs:
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Install iOS workload
-        run: dotnet workload install ios --source https://api.nuget.org/v3/index.json
+      - name: Install workloads
+        run: dotnet workload restore Gomoku.csproj
 
       - name: Publish unsigned IPA
         continue-on-error: true
