@@ -17,16 +17,21 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Select latest Xcode
+      - name: Select Xcode and list versions
         run: |
-          ls /Applications | grep Xcode
+          echo "===== 可用 Xcode 版本 ====="
+          ls -d /Applications/Xcode*.app 2>/dev/null
+          echo "===== xcodebuild 版本 ====="
+          xcodebuild -version
+          echo "===== 选择最新 Xcode ====="
           sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
           xcodebuild -version
 
-      - name: Install workloads (pin iOS to Xcode 26.3-compatible version)
+      - name: Install workloads
         run: |
           dotnet workload install maui-android
           dotnet workload install ios --version 26.2.10233
+          echo "===== 已安装 workload ====="
           dotnet workload list
 
       - name: Build and package unsigned IPA
