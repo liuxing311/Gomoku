@@ -20,6 +20,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IBluetoothService, Platforms.Android.Services.BluetoothService>();
 #elif IOS
 		builder.Services.AddSingleton<IBluetoothService, Platforms.iOS.Services.BluetoothService>();
+#elif WINDOWS
+		builder.Services.AddSingleton<IBluetoothService, Platforms.Windows.Services.BluetoothService>();
 #else
 		builder.Services.AddSingleton<IBluetoothService, UnsupportedBluetoothService>();
 #endif

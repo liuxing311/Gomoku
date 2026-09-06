@@ -12,7 +12,7 @@ public partial class MenuPage : ContentPage
         InitializeComponent();
         _bluetooth = bluetooth;
 
-#if !ANDROID && !IOS
+#if !(ANDROID || IOS || WINDOWS)
         // 其余平台无蓝牙实现，隐藏蓝牙对战区域
         BtSection.IsVisible = false;
 #endif

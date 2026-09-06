@@ -1,7 +1,7 @@
-#if !ANDROID && !IOS
+#if !(ANDROID || IOS || WINDOWS)
 namespace Gomoku.Services;
 
-/// <summary>非 Android 平台的桩实现（蓝牙对战仅在 Android 手机上支持）。</summary>
+/// <summary>无蓝牙实现平台的桩实现。</summary>
 public class UnsupportedBluetoothService : IBluetoothService
 {
     public bool IsConnected => false;
@@ -14,13 +14,13 @@ public class UnsupportedBluetoothService : IBluetoothService
 
     public Task<bool> StartHostingAsync()
     {
-        StatusChanged?.Invoke(this, "蓝牙对战仅支持 Android 手机");
+        StatusChanged?.Invoke(this, "当前平台不支持蓝牙对战");
         return Task.FromResult(false);
     }
 
     public Task<bool> StartJoiningAsync()
     {
-        StatusChanged?.Invoke(this, "蓝牙对战仅支持 Android 手机");
+        StatusChanged?.Invoke(this, "当前平台不支持蓝牙对战");
         return Task.FromResult(false);
     }
 
