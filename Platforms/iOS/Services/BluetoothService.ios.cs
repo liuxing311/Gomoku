@@ -296,7 +296,7 @@ public class BluetoothService : IBluetoothService
             }
         }
 
-        public override void DiscoveredCharacteristic(CBPeripheral peripheral, CBService service, NSError? error)
+        public override void DiscoveredCharacteristics(CBPeripheral peripheral, CBService service, NSError? error)
         {
             if (service.Characteristics is null) return;
             foreach (var ch in service.Characteristics)
