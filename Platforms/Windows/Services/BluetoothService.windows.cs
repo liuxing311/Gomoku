@@ -52,6 +52,15 @@ public class BluetoothService : IBluetoothService
         RaiseStatus("正在创建房间…");
         try
         {
+            // 预检：本机蓝牙必须支持外设（Peripheral）角色才能当主机
+            var adapter = await BluetoothAdapter.GetDefaultAsync();
+            if (adapter is null || !adapter.IsPeripheralRoleSupported)
+            {
+                RaiseStatus("本机蓝牙不支持主机模式，请改用手机创建房间、电脑点加入房间");
+                Role = BluetoothRole.None;
+                return false;
+            }
+
             var result = await GattServiceProvider.CreateAsync(ServiceUuid);
             _provider = result.ServiceProvider;
             _provider.AdvertisementStatusChanged += OnAdvStatusChanged;
@@ -67,7 +76,15 @@ public class BluetoothService : IBluetoothService
             _hostChar.SubscribedClientsChanged += OnSubscribedClientsChanged;
             _lastSubscriberCount = 0;
 
-            _provider.StartAdvertising();
+            // 必须显式使用可连接广播并携带服务 UUID，
+            // 手机端按服务 UUID 过滤扫描，无参 StartAdvertising() 不会广播 UUID 导致永远扫不到
+            var adv = new BluetoothLEAdvertisement
+            {
+                IsConnectable = true,
+                IsDiscoverable = true
+            };
+            adv.ServiceUuids.Add(ServiceUuid);
+            _provider.StartAdvertising(adv);
             return true;
         }
         catch (Exception ex)
