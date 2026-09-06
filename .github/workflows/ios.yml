@@ -84,11 +84,15 @@ jobs:
             exit 1
           fi
 
-          APPDIR=$(find bin/Release/net10.0-ios/ios-arm64/publish -name "*.app" -type d | head -1)
+          APPDIR=$(find bin/Release/net10.0-ios -name "*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APPDIR" ]; then
+            APPDIR=$(find . -name "*.app" -type d 2>/dev/null | grep -v obj | head -1)
+          fi
           echo "找到 .app: $APPDIR"
           if [ -z "$APPDIR" ]; then
-            echo "::error::未找到 .app 包"
-            find . -name "*.app" -type d 2>/dev/null || true
+            LIST1=$(find bin -maxdepth 5 -type d 2>/dev/null | head -30 | tr '\n' '|')
+            LIST2=$(find . -name "*.app" 2>/dev/null | head -5 | tr '\n' '|')
+            echo "::error::未找到 .app 包。bin目录结构: $LIST1 ||| app搜索: $LIST2"
             exit 1
           fi
 
