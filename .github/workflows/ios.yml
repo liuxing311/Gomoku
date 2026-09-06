@@ -17,15 +17,33 @@ jobs:
         with:
           dotnet-version: '10.0.202'
 
-      - name: Select Xcode and list versions
+      - name: Select Xcode 26.3 and fix SDK layout
         run: |
-          echo "===== 可用 Xcode 版本 ====="
-          ls -d /Applications/Xcode*.app 2>/dev/null
-          echo "===== xcodebuild 版本 ====="
+          echo "===== 可用 Xcode（含符号链接解析）====="
+          ls -la /Applications/ | grep -i xcode || true
+          XC=$(ls -d /Applications/Xcode*.app 2>/dev/null | grep "26.3" | head -1)
+          if [ -z "$XC" ]; then
+            XC=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          fi
+          XCREAL=$(readlink -f "$XC")
+          echo "选择 Xcode: $XC => 真实路径 $XCREAL"
+          export DEVELOPER_DIR="$XCREAL/Contents/Developer"
+          echo "DEVELOPER_DIR=$DEVELOPER_DIR" >> "$GITHUB_ENV"
+          sudo xcode-select -s "$XCREAL/Contents/Developer"
           xcodebuild -version
-          echo "===== 选择最新 Xcode ====="
-          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
-          xcodebuild -version
+          echo "===== MacOSX SDK 目录布局 ====="
+          SDKS="$XCREAL/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs"
+          ls -la "$SDKS" || true
+          if [ ! -e "$SDKS/MacOSX.sdk" ]; then
+            VERSDK=$(ls -d "$SDKS"/MacOSX*.sdk 2>/dev/null | grep -v "MacOSX.sdk" | head -1)
+            if [ -n "$VERSDK" ]; then
+              sudo ln -s "$VERSDK" "$SDKS/MacOSX.sdk"
+              echo "已创建 MacOSX.sdk 符号链接指向 $VERSDK"
+            fi
+          fi
+          echo "===== actool 查找诊断 ====="
+          xcrun -find actool || true
+          xcodebuild -sdk "$SDKS/MacOSX.sdk" -find actool || true
 
       - name: Install workloads (set 10.0.202 => iOS 26.2.10233, Xcode 26.3)
         run: |
