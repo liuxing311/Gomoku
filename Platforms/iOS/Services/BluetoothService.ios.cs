@@ -155,11 +155,12 @@ public class BluetoothService : IBluetoothService
         {
             switch (peripheral.State)
             {
-                case CBPeripheralManagerState.PoweredOn:
+                case CBManagerState.PoweredOn:
                     // 特征：Notify（主机→从机）+ Write（从机→主机），与 Android 端一致
                     var ch = new CBMutableCharacteristic(
                         CharUuid,
-                        CBCharacteristicProperty.Notify | CBCharacteristicProperty.Write,
+                        CBCharacteristicProperties.Notify | CBCharacteristicProperties.Write,
+                        null,
                         CBAttributePermissions.Readable | CBAttributePermissions.Writeable);
                     var svc = new CBMutableService(ServiceUuid, true)
                     {
@@ -168,13 +169,13 @@ public class BluetoothService : IBluetoothService
                     _svc._hostChar = ch;
                     peripheral.AddService(svc);
                     break;
-                case CBPeripheralManagerState.PoweredOff:
+                case CBManagerState.PoweredOff:
                     _svc.RaiseStatus("请先开启手机蓝牙，然后重试");
                     break;
-                case CBPeripheralManagerState.Unauthorized:
+                case CBManagerState.Unauthorized:
                     _svc.RaiseStatus("请在系统设置中允许本应用使用蓝牙");
                     break;
-                case CBPeripheralManagerState.Unsupported:
+                case CBManagerState.Unsupported:
                     _svc.RaiseStatus("本机不支持蓝牙低功耗");
                     break;
             }
@@ -262,7 +263,7 @@ public class BluetoothService : IBluetoothService
             _peripheralDelegate = new PeripheralDelegate(_svc);
             peripheral.Delegate = _peripheralDelegate;
             _svc._peripheral = peripheral;
-            central.ConnectPeripheral(peripheral, null);
+            central.ConnectPeripheral(peripheral);
         }
 
         public override void ConnectedPeripheral(CBCentralManager central, CBPeripheral peripheral)
