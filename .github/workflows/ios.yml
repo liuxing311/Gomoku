@@ -49,8 +49,7 @@ jobs:
             -c Release \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:MtouchSignAssembly=false \
-            -p:CodesignKey= \
-            -p:CodesignProvision= \
+            -p:EnableCodeSigning=false \
             -p:BuildIpa=false \
             -v minimal > publish.log 2>&1
           EXIT=$?
