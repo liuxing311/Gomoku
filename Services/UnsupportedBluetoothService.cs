@@ -1,4 +1,4 @@
-#if !ANDROID
+#if !ANDROID && !IOS
 namespace Gomoku.Services;
 
 /// <summary>非 Android 平台的桩实现（蓝牙对战仅在 Android 手机上支持）。</summary>
